@@ -23,6 +23,5 @@ script:
   - go test -v -race ./...
 
   # Generate test coverage report. This must be after all other tests.
-  - rm github/github-accessors.go # exclude generated code
   - go test -v -covermode=count -coverprofile=coverage.out ./cmd/coverallssvc
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

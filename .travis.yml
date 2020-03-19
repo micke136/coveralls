@@ -1,0 +1,29 @@
+sudo: false
+language: go
+go:
+  - 1.8.x
+  - 1.7.x
+  - master
+matrix:
+  allow_failures:
+    - go: master
+  fast_finish: true
+env:
+  global:
+    secure: S59LmqulUZhvDIDg4PofGQaTNI66O5SFGeSTFu4h8TggJnOq23Po+uXqVM4+KsOdNSk8G8ysy3I02bXu+arZAEbbwEHWy4ZeSvwdkfU/JLuFF3KyCmSnPHR0GL/aiO/za5NV75ms1nnIV2j0TS3tgVPOP71o6rAMHLyPYTGCXJGXjbmRmLVJ3hi8fs/8WnfmaRR7WuYFkxX4Ofys3NUeynlrZ+bPJQVZpa8M3mzQDqc+HkEO6hfNWU+uWzP1eTRmfliMF9LTX8QmBphxzEXrKmaRLJbQWDxjv+btm3AMYP0kjcUZymhovxSyJ5XXFNcKySVlbi6MIlkLcChUxpnXTLGCQe4m0cZMRthP6KGR37jWF2VEfqRhwI1VvEjU+cJt3f9vPuFtTLkNbnDw5pfxBPxTvLGmF8aU4hsMAV0X2L1mMtl8V5UqdLObFB3crxyFMSIHdljOQCEOjh5DjylgcqFehF/8ZREIU8rp/G4zc7+47yXeqeQa4118yJ++x9efUWAHS2RwCCNFm+oe+26057+IHsKXr6xhFnVwPs5u+8jPGueufUd3mfsp4TJhklSMBknuDynQIO5zWQ+sv17Yf4/JUS9dsOB8vDJZFmXenVFdflHWL1xc8jF3iQbgiOgoOEHstngNHSpAvM1fXOMWPCB/+0kEUvwfJeUq2yMPO3Y=
+install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
+  # Do not install go-github yet, since we want it to happen inside the script step.
+script:
+  - go get -t -v ./...
+  - diff -u <(echo -n) <(gofmt -d -s .)
+  - go generate -x ./... && git diff --exit-code; code=$?; git checkout -- .; (exit $code) # Check that go generate ./... produces a zero diff; clean up any changes afterwards.
+  - go tool vet .
+  - go test -v -race ./...
+  - go test -v -tags=integration -run=^$ ./test/integration # Check that integration test builds successfully, but don't run any of the tests (they hit live GitHub API).
+
+  # Generate test coverage report. This must be after all other tests.
+  - rm github/github-accessors.go # exclude generated code
+  - go test -v -covermode=count -coverprofile=coverage.out ./github
+  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

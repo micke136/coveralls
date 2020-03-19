@@ -1,0 +1,2 @@
+# coveralls
+test coveralls integration

@@ -16,10 +16,10 @@ RUN go get golang.org/x/tools/cmd/cover
 RUN go test -v -covermode=count -coverprofile=coverage.out ./...
 
 #SEND TO COVERALLS
-CMD ~/go/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken ${coveralls_token}
+RUN $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken ${coveralls_token}
 
 # This container exposes port 8080 to the outside world
 EXPOSE 8080
 
 # Run the executable
-ENTRYPOINT ["go-sample-app"]
+CMD ["go-sample-app"]
